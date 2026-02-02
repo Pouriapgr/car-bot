@@ -38,7 +38,7 @@ class BotManager:
     async def on_audio_query_received(self, data):
         if self.state == BotState.LISTENING:
             await self.set_state(BotState.THINKING)
-            await self.bus.publish("SERVER_QUERY_TRANSFER", data=data)
+            await self.bus.publish("SERVER_QUERY_INTERACTION", data=data)
 
     async def on_server_response_received(self, data):
         if self.state == BotState.THINKING:

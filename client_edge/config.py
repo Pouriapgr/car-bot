@@ -17,6 +17,11 @@ class AudioConfig:
 
     WAKE_WORD_THRESHOLD = 0.6
     WAKE_COMMAND = 'alexa'
-    
+
     VAD_RMS_THRESHOLD = 500
     VAD_SILENCE_CHUNKS_REQUIRED = 12
+
+class SocketConfig:
+    CHANNELS = 1
+    RATE = 16000
+    SAMPLE_WIDTH = 2 

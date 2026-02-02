@@ -21,6 +21,7 @@ class AudioService:
         self.vad_has_spoken = False    
 
         self.p = pyaudio.PyAudio()
+        ### todo: make sure about the mic IN_CHUNK. might need to use buffer extention
         self.input_stream = self.p.open(format=AC.FORMAT, channels=AC.CHANNELS, rate=AC.IN_RATE, input=True, frames_per_buffer=AC.IN_CHUNK)
         self.output_stream = self.p.open(format=AC.FORMAT, channels=AC.CHANNELS, rate=AC.OUT_RATE, output=True)
         self.is_running = True    
