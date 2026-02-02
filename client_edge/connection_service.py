@@ -2,11 +2,8 @@ import aiohttp
 import asyncio
 import json
 import struct
-import logging
 from client_edge.event_bus import EventBus
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("DataConnector")
+from config import SocketConfig as SC
 
 class DataConnector:
     def __init__(self, bus: EventBus, server_ws_url: str):
@@ -71,9 +68,9 @@ class DataConnector:
         header = struct.pack(
             '<4sI4s4sIHHIIHH4sI',
             b'RIFF', 36 + len(pcm_data), b'WAVE', b'fmt ', 16, 1,
-            self.CHANNELS, self.RATE,
-            self.RATE * self.CHANNELS * self.SAMPLE_WIDTH,
-            self.CHANNELS * self.SAMPLE_WIDTH,
+            SC.CHANNELS, SC.RATE,
+            SC.RATE * SC.CHANNELS * SC.SAMPLE_WIDTH,
+            SC.CHANNELS * SC.SAMPLE_WIDTH,
             16, b'data', len(pcm_data)
         )
         return header + pcm_data

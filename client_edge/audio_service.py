@@ -81,7 +81,7 @@ class AudioService:
                 await asyncio.sleep(0.1)
                 continue
             try:
-                data = await asyncio.to_thread(self.input_stream.read, self.CHUNK, exception_on_overflow=False)
+                data = await asyncio.to_thread(self.input_stream.read, AC.IN_CHUNK, exception_on_overflow=False)
             except Exception as e:
                 print(f"AUDIO READ ERROR: {e}")
                 await asyncio.sleep(0.1)
@@ -97,7 +97,7 @@ class AudioService:
 
             elif self.state == BotState.LISTENING:
                 rms = np.sqrt(np.mean(audio_np.astype(np.float32)**2))
-                is_speech = rms > self.VAD_RMS_THRESHOLD
+                is_speech = rms > AC.VAD_RMS_THRESHOLD
 
                 if is_speech:
                     self.vad_silence_counter = 0
@@ -110,8 +110,8 @@ class AudioService:
                     self.vad_silence_counter += 1
                     self.audio_buffer.append(data)
 
-                    if self.vad_silence_counter >= self.VAD_SILENCE_CHUNKS_REQUIRED:
-                        recorded_audio = b''.join(self.frames)
+                    if self.vad_silence_counter >= AC.VAD_SILENCE_CHUNKS_REQUIRED:
+                        recorded_audio = b''.join(self.audio_buffer)
                         await self.bus.publish("AUDIO_QUERY_RECEIVED", recorded_audio)
                         self._reset_vad_state() 
                 

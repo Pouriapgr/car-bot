@@ -53,34 +53,41 @@ class BotGUI:
         self.cap = cv2.VideoCapture(filepath)
         self.current_video_file = filename
 
-    def render_frame(self):
-        if self.cap and self.cap.isOpened():
+    def _process_frame_job(self):
+        if not self.cap or not self.cap.isOpened():
+            return None
+        
+        ret, frame = self.cap.read()
+        if not ret:
+            self.cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
             ret, frame = self.cap.read()
-            
-            if not ret:
-                self.cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-                ret, frame = self.cap.read()
-            if ret:
-                frame = cv2.resize(frame, self.display_size)
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                frame = np.transpose(frame, (1, 0, 2))
-                surf = pygame.surfarray.make_surface(frame)
-                self.screen.blit(surf, (0, 0))
-        else:
-            self.screen.fill((0,0,0))
-            font = pygame.font.SysFont("Arial", 20)
-            text = font.render(self.current_state, True, (255, 255, 255))
-            self.screen.blit(text, (10, 10))
+            if not ret: return None
 
-        pygame.display.flip()
+        frame = cv2.resize(frame, self.display_size)
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frame = np.transpose(frame, (1, 0, 2))
+        return frame
+
 
     async def run(self):
+        loop = asyncio.get_running_loop()
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
+
+            try:
+                frame_data = await loop.run_in_executor(None, self._process_frame_job)
+                if frame_data is not None:
+                    surf = pygame.surfarray.make_surface(frame_data)
+                    self.screen.blit(surf, (0, 0))
+                else:
+                    self.screen.fill((0,0,0))
+            except Exception as e:
+                print(f"GUI Error: {e}")
+
+            pygame.display.flip()
             
-            self.render_frame()
             self.clock.tick(GC.FRAME_RATE)
             await asyncio.sleep(0)
 
