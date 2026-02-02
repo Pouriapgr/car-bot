@@ -1,5 +1,5 @@
 import asyncio
-import config
+from config import TimerConfig
 from states import BotState
 
 class IdleTimer:
@@ -16,7 +16,7 @@ class IdleTimer:
 
     async def countdown(self):
         try:
-            await asyncio.sleep(config.TIMER_COUNTER) 
+            await asyncio.sleep(TimerConfig.TIMER_COUNTER) 
             await self.bus.publish("IDLE_TIMEOUT")
         except asyncio.CancelledError:
             print("TIMER: Reset")
