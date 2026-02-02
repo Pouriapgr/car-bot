@@ -22,6 +22,13 @@ class AudioConfig:
     VAD_SILENCE_CHUNKS_REQUIRED = 12
 
 class SocketConfig:
+
     CHANNELS = 1
     RATE = 16000
     SAMPLE_WIDTH = 2 
+
+class GUIConfig:
+
+    DISPLAY_WIDTH = 320
+    DISPLAY_HEIGHT = 240
+    FRAME_RATE = 24

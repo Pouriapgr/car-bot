@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import os
 from client_edge.event_bus import EventBus
+from config import GUIConfig as GC
 
 class BotGUI:
     def __init__(self, bus: EventBus, video_folder="assets/videos"):
@@ -20,7 +21,7 @@ class BotGUI:
         }
         
         pygame.init()
-        self.display_size = (320, 240)
+        self.display_size = (GC.DISPLAY_WIDTH, GC.DISPLAY_HEIGHT)
         self.screen = pygame.display.set_mode(self.display_size)
         pygame.display.set_caption("Robot Face")
         self.clock = pygame.time.Clock()
@@ -80,7 +81,7 @@ class BotGUI:
                     self.running = False
             
             self.render_frame()
-            self.clock.tick(24)
+            self.clock.tick(GC.FRAME_RATE)
             await asyncio.sleep(0)
 
         if self.cap:

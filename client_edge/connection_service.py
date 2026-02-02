@@ -24,13 +24,10 @@ class DataConnector:
     async def maintain_connection(self):
         while True:
             try:
-                logger.info(f"Connecting to {self.server_ws_url}...")
-                
                 async with aiohttp.ClientSession() as self.session:
                     async with self.session.ws_connect(self.server_ws_url) as ws:
                         self.ws = ws
                         self.is_connected = True
-                        logger.info("WebSocket Connected!")
                         
                         await self.bus.publish("NETWORK_CONNECTED") # FUTURE Devlopment
 
@@ -38,42 +35,36 @@ class DataConnector:
                             if msg.type == aiohttp.WSMsgType.TEXT:
                                 await self.handle_server_message(msg.data)
                             elif msg.type == aiohttp.WSMsgType.ERROR:
-                                logger.error(f"WebSocket Error: {ws.exception()}")
                                 break
                         self.is_connected = False
-                        logger.warning("WebSocket Connection Closed")
                         await self.bus.publish("NETWORK_DISCONNECTED") # FUTURE Devlopment
 
             except Exception as e:
                 self.is_connected = False
-                logger.error(f"Connection Failed: {e}. Retrying in 3s...")
+                print(f"Connection Failed: {e}. Retrying in 3s...")
                 await self.bus.publish("NETWORK_DISCONNECTED") # FUTURE Devlopment
                 await asyncio.sleep(3) # Wait before retry
 
     async def handle_server_message(self, message_str):
         try:
             data = json.loads(message_str)
-            logger.info("Received Server Response")
             await self.bus.publish("SERVER_RESPONSE_RECEIVED", data)
             
         except json.JSONDecodeError:
-            logger.error(f"Failed to decode server message: {message_str}")
+            print(f"Failed to decode server message: {message_str}")
         except Exception as e:
-            logger.error(f"Error handling server message: {e}")
+            print(f"Error handling server message: {e}")
 
     async def send_audio(self, raw_audio_bytes):
         if not self.is_connected or not self.ws:
-            logger.error("Cannot send audio: WebSocket not connected")
             await self.bus.publish("SERVER_ERROR") # FUTURE Devlopment
             return
-
-        logger.info(f"Uploading {len(raw_audio_bytes)} bytes via WebSocket...")
         
         wav_data = self._add_wav_header(raw_audio_bytes)
         try:
             await self.ws.send_bytes(wav_data)
         except Exception as e:
-            logger.error(f"Failed to send audio: {e}")
+            print(f"Failed to send audio: {e}")
             await self.bus.publish("SERVER_ERROR") # FUTURE Devlopment
 
     def _add_wav_header(self, pcm_data: bytes) -> bytes:
