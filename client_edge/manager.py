@@ -53,7 +53,7 @@ class BotManager:
 
     async def on_wake_up_complete(self, _):
         if self.state == BotState.WAKING_UP:
-            await self.set_state(BotState.IDLE)
+            await self.set_state(BotState.LISTENING)
             
     async def on_playback_complete(self, _):
         if self.state == BotState.SPEAKING:
