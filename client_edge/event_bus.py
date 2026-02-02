@@ -12,13 +12,11 @@ class EventBus:
         if event_name not in self.subscribers:
             self.subscribers[event_name] = []
         self.subscribers[event_name].append(callback)
-        print(f"[BUS]: New subscriber for '{event_name}' - {callback.__name__}")
 
     def unsubscribe(self, event_name: str, callback: Callable):
         if event_name in self.subscribers:
             try:
                 self.subscribers[event_name].remove(callback)
-                print(f"[BUS]: Unsubscribed '{callback.__name__}' from '{event_name}'")
             except ValueError:
                 pass 
 
