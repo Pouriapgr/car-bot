@@ -1,21 +1,25 @@
 import io
 import asyncio
 from faster_whisper import WhisperModel
+from server_core.configs.config import ModelsConfig as MC
 
-model = WhisperModel("large-v3", device="cuda", compute_type="float16")
+class Speech2Text:
 
-async def transcribe_audio(audio_bytes: bytes) -> str:
-    return await asyncio.to_thread(_process_transcription, audio_bytes)
+    def __init__(self, device, compute_type = 'float16'):
+        self.model = WhisperModel(MC.STT_MODEL_PATH, device=device, compute_type=compute_type)
 
-def _process_transcription(audio_bytes):
-    try:
-        audio_file = io.BytesIO(audio_bytes)
-        segments, info = model.transcribe(audio_file, beam_size=3, language="en")
+    async def transcribe_audio(self, audio_bytes: bytes) -> str:
+        return await asyncio.to_thread(self._process_transcription, audio_bytes)
+
+    def _process_transcription(self, audio_bytes):
+        try:
+            audio_file = io.BytesIO(audio_bytes)
+            segments, info = self.model.transcribe(audio_file, MC.SST_BEAM_SIZE, language=MC.STT_LANGUAGE)
+            
+            text = " ".join([segment.text for segment in segments])
+            print(f"User said: {text}")
+            return text.strip()
         
-        text = " ".join([segment.text for segment in segments])
-        print(f"User said: {text}")
-        return text.strip()
-    
-    except Exception as e:
-        print(f"STT Error: {e}")
-        return ""
+        except Exception as e:
+            print(f"STT Error: {e}")
+            return ""
