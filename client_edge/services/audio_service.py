@@ -9,7 +9,7 @@ from client_edge.managers.states import BotState
 from client_edge.configs.config import AudioConfig as AC
 
 
-class AudioService:
+class BotAudio:
     def __init__(self, bus: EventBus):
         self.bus = bus
         self.bus.subscribe("STATE_CHANGED", self.handle_state)
@@ -28,7 +28,7 @@ class AudioService:
 
         self.oww_model = Model(wakeword_models=[AC.WAKE_COMMAND])
         
-        asyncio.create_task(self.audio_loop())
+        self.task = asyncio.create_task(self.audio_loop())
 
     def _reset_vad_state(self):
         self.audio_buffer.clear()
@@ -120,3 +120,10 @@ class AudioService:
                 pass
 
             await asyncio.sleep(0.01)
+    
+    def shutdown(self):
+        self._cancel_task()
+        self.p.close()
+
+    def _cancel_task(self):
+        self.task.cancel()

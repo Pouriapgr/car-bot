@@ -32,3 +32,7 @@ class GUIConfig:
     DISPLAY_WIDTH = 320
     DISPLAY_HEIGHT = 240
     FRAME_RATE = 24
+
+class GeneralConfig:
+    VIDEO_ADDRESS = "assets/videos"
+    SERVER_WS_URL = "localhost:8000"

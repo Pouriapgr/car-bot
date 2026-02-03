@@ -24,6 +24,7 @@ class BotGUI:
         self.display_size = (GC.DISPLAY_WIDTH, GC.DISPLAY_HEIGHT)
         self.screen = pygame.display.set_mode(self.display_size)
         pygame.display.set_caption("Robot Face")
+        pygame.mouse.set_visible(False)
         self.clock = pygame.time.Clock()
 
         self.current_state = "BOOT"
@@ -34,6 +35,8 @@ class BotGUI:
         self.bus.subscribe("STATE_CHANGED", self.handle_state_change)
         
         self.load_video_for_state("BOOT")
+
+        self.task = asyncio.create_task(self.run())
 
     async def handle_state_change(self, new_state):
         if new_state != self.current_state:
@@ -94,3 +97,15 @@ class BotGUI:
         if self.cap:
             self.cap.release()
         pygame.quit()
+
+    
+    def shutdown(self):
+        if self.cap:
+            self.cap.release()
+        pygame.quit()
+        self.task.cancel()
+
+    def _cancel_task(self):
+        self.task.cancel()
+        
+        

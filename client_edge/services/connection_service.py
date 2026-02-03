@@ -16,7 +16,7 @@ class DataConnector:
         # Subscribe to outgoing events
         self.bus.subscribe("SERVER_QUERY_INTERACTION", self.send_audio)
         
-        asyncio.create_task(self.maintain_connection())
+        self.task = asyncio.create_task(self.maintain_connection())
 
     async def maintain_connection(self):
         while True:
@@ -74,3 +74,9 @@ class DataConnector:
             16, b'data', len(pcm_data)
         )
         return header + pcm_data
+    
+    def shutdown(self):
+        self._cancel_task()
+
+    def _cancel_task(self):
+        self.task.cancel()
