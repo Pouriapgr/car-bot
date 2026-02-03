@@ -1,10 +1,7 @@
 import asyncio
-import wave
-import os
 import subprocess
+from server_core.configs.config import ModelsConfig as MC
 
-PIPER_PATH = "./piper/piper.exe" 
-MODEL_PATH = "models/en_US-lessac-high.onnx"
 
 async def text_to_speech(text: str) -> bytes:
     return await asyncio.to_thread(_run_piper_cli, text)
@@ -13,8 +10,8 @@ def _run_piper_cli(text):
     try:
         # Command: echo text | piper -m model -f output.wav
         cmd = [
-            PIPER_PATH,
-            "--model", MODEL_PATH,
+            MC.PIPER_PATH,
+            "--model", MC.MODEL_PATH,
             "--output_file", "output.wav"
         ]
         
