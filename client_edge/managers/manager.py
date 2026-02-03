@@ -1,4 +1,4 @@
-# client_edge/manager.py
+# client_edge/managers/manager.py
 
 from client_edge.managers.event_bus import EventBus
 from client_edge.managers.states import BotState
@@ -15,8 +15,9 @@ class BotManager:
         self.bus.subscribe("SERVER_RESPONSE_RECEIVED", self.on_server_response_received)
 
         self.bus.subscribe("WAKE_UP_COMPLETE"        , self.on_wake_up_complete        )
-        self.bus.subscribe("PLAYBACK_DONE"           , self.on_playback_complete       )
+        self.bus.subscribe("PLAYBACK_COMPLETE"       , self.on_playback_complete       )
         self.bus.subscribe("ACTION_COMPLETE"         , self.on_action_complete         )
+        self.bus.subscribe("GOING_TO_SLEEP_COMPLETE" , self.on_going_to_sleep_complete )
 
         self.bus.subscribe("IDLE_TIMEOUT"            , self.on_idle_timeout            )
 
@@ -61,7 +62,7 @@ class BotManager:
             self.next_state_after_action = BotState.IDLE
             
     async def on_action_complete(self, _):
-        if self.state == BotState.SPEAKING:
+        if self.state == BotState.ACTING:
             await self.set_state(self.next_state_after_action)
             self.next_state_after_action = BotState.IDLE
 
@@ -69,4 +70,8 @@ class BotManager:
     async def on_idle_timeout(self, _):
         if self.state == BotState.IDLE:
             await self.set_state(BotState.GOING_TO_SLEEP)
+            await self.set_state(BotState.SLEEP)
+
+    async def on_going_to_sleep_complete(self, _):
+        if self.state == BotState.GOING_TO_SLEEP:
             await self.set_state(BotState.SLEEP)

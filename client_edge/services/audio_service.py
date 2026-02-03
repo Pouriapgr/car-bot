@@ -1,4 +1,4 @@
-# client_edge/audio_service.py
+# client_edge/services/audio_service.py
 
 import pyaudio
 import numpy as np
@@ -16,6 +16,7 @@ class BotAudio:
         self.bus.subscribe("SPEAK_COMMAND", self.play_audio)
         self.state = BotState.SLEEP
         
+        self.task = None
         self.audio_buffer = [] 
         self.vad_silence_counter = 0
         self.vad_has_spoken = False    
@@ -28,52 +29,8 @@ class BotAudio:
 
         self.oww_model = Model(wakeword_models=[AC.WAKE_COMMAND])
         
+    def run_task(self):
         self.task = asyncio.create_task(self.audio_loop())
-
-    def _reset_vad_state(self):
-        self.audio_buffer.clear()
-        self.vad_silence_counter = 0
-        self.vad_has_spoken = False
-
-    async def handle_state(self, state):
-        previous_state = self.state
-        self.state = state
-        
-        if state == BotState.WAKING_UP:
-            await self._play_system_sound("wake_up_ding")
-            await self.bus.publish("WAKE_UP_COMPLETE")
-
-        elif state == BotState.GOING_TO_SLEEP:
-            await self._play_system_sound("going_to_sleep_sound")
-            await self.bus.publish("GOING_TO_SLEEP_COMPLETE")
-
-        elif state == BotState.LISTENING:
-            self._reset_vad_state()
-            
-        elif state in [BotState.IDLE, BotState.SLEEP]:
-            self._reset_vad_state()
-            self.oww_model.reset()
-
-        elif state in [BotState.THINKING, BotState.SPEAKING, BotState.ACTING]:
-            pass
-
-    async def _play_system_sound(self, sound_type):
-        print(f"AUDIO: >> Playing sound: {sound_type} <<")
-
-    async def play_audio(self, audio_data: bytes):
-        if not audio_data:
-            return
-
-        try:
-            await asyncio.to_thread(self.output_stream.write, audio_data)
-            silence = b'\x00' * 1024
-            await asyncio.to_thread(self.output_stream.write, silence)
-
-        except Exception as e:
-            print(f"AUDIO ERROR (Playback): {e}")
-
-        finally:
-            await self.bus.publish("PLAYBACK_COMPLETE")
 
     async def audio_loop(self):
         while self.is_running:
@@ -120,10 +77,62 @@ class BotAudio:
                 pass
 
             await asyncio.sleep(0.01)
+
+
+    async def handle_state(self, state):
+        previous_state = self.state
+        self.state = state
+        
+        if state == BotState.WAKING_UP:
+            await self._play_system_sound("wake_up_ding")
+            await self.bus.publish("WAKE_UP_COMPLETE")
+
+        elif state == BotState.GOING_TO_SLEEP:
+            await self._play_system_sound("going_to_sleep_sound")
+            await self.bus.publish("GOING_TO_SLEEP_COMPLETE")
+
+        elif state == BotState.LISTENING:
+            self._reset_vad_state()
+            
+        elif state in [BotState.IDLE, BotState.SLEEP]:
+            self._reset_vad_state()
+            self.oww_model.reset()
+
+        elif state in [BotState.THINKING, BotState.SPEAKING, BotState.ACTING]:
+            pass
+
+    async def _play_system_sound(self, sound_type):
+        print(f"AUDIO: >> Playing sound: {sound_type} <<")
+
+    async def play_audio(self, audio_data: bytes):
+        if not audio_data:
+            return
+
+        try:
+            await asyncio.to_thread(self.output_stream.write, audio_data)
+            silence = b'\x00' * 1024
+            await asyncio.to_thread(self.output_stream.write, silence)
+
+        except Exception as e:
+            print(f"AUDIO ERROR (Playback): {e}")
+
+        finally:
+            await self.bus.publish("PLAYBACK_COMPLETE")
+
+
+    def _reset_vad_state(self):
+        self.audio_buffer.clear()
+        self.vad_silence_counter = 0
+        self.vad_has_spoken = False
+
     
     def shutdown(self):
         self._cancel_task()
         self.p.close()
+        self.p.terminate()
+        self.input_stream.close()
+        self.output_stream.close()
 
     def _cancel_task(self):
-        self.task.cancel()
+        if self.task:
+            self.task.cancel()

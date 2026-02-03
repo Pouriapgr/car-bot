@@ -1,3 +1,5 @@
+# client_edge/services/connection_service.py
+
 import aiohttp
 import asyncio
 import json
@@ -9,13 +11,15 @@ class DataConnector:
     def __init__(self, bus: EventBus, server_ws_url: str):
         self.bus = bus
         self.server_ws_url = server_ws_url 
+        self.task = None
         self.ws = None
         self.session = None
         self.is_connected = False
-        
+
         # Subscribe to outgoing events
         self.bus.subscribe("SERVER_QUERY_INTERACTION", self.send_audio)
         
+    def run_task(self):
         self.task = asyncio.create_task(self.maintain_connection())
 
     async def maintain_connection(self):
@@ -52,6 +56,7 @@ class DataConnector:
         except Exception as e:
             print(f"Error handling server message: {e}")
 
+
     async def send_audio(self, raw_audio_bytes):
         if not self.is_connected or not self.ws:
             await self.bus.publish("SERVER_ERROR") # FUTURE Devlopment
@@ -67,16 +72,20 @@ class DataConnector:
     def _add_wav_header(self, pcm_data: bytes) -> bytes:
         header = struct.pack(
             '<4sI4s4sIHHIIHH4sI',
-            b'RIFF', 36 + len(pcm_data), b'WAVE', b'fmt ', 16, 1,
+            b'RIFF', 36 + len(pcm_data), b'WAVE', b'fmt ', SC.SAMPLE_WIDTH * 8, 1,
             SC.CHANNELS, SC.RATE,
             SC.RATE * SC.CHANNELS * SC.SAMPLE_WIDTH,
             SC.CHANNELS * SC.SAMPLE_WIDTH,
             16, b'data', len(pcm_data)
         )
         return header + pcm_data
-    
+
+
     def shutdown(self):
         self._cancel_task()
 
     def _cancel_task(self):
-        self.task.cancel()
+        if self.task:
+            self.task.cancel()
+            self.ws.close()
+            self.session.close()

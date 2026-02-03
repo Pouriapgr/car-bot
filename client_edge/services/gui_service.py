@@ -1,3 +1,5 @@
+# client_edge/services/gui_service.py
+
 import asyncio
 import pygame
 import cv2
@@ -14,10 +16,14 @@ class BotGUI:
         
         self.video_map = {
             "BOOT": "boot.mp4",
-            "IDLE": "idle.mp4",         # e.g., Blinking eyes
-            "LISTENING": "listening.mp4", # e.g., Ears perking up
-            "THINKING": "thinking.mp4",   # e.g., Spinning gears
-            "SPEAKING": "speaking.mp4"    # e.g., Moving mouth
+            "WAKING_UP": "waking_up.mp4",
+            "GOING_TO_SLEEP": "going_to_sleep.mp4",
+            "SLEEP": "sleep.mp4",
+            "IDLE": "idle.mp4",            # e.g., Blinking eyes
+            "LISTENING": "listening.mp4",  # e.g., Ears perking up
+            "THINKING": "thinking.mp4",    # e.g., Spinning gears
+            "SPEAKING": "speaking.mp4",    # e.g., Moving mouth
+            "ACTING": "acting.mp4"
         }
         
         pygame.init()
@@ -30,18 +36,17 @@ class BotGUI:
         self.current_state = "BOOT"
         self.cap = None 
         self.current_video_file = None
+        self.loop = asyncio.get_running_loop()
         
         # Subscribe to events
         self.bus.subscribe("STATE_CHANGED", self.handle_state_change)
         
         self.load_video_for_state("BOOT")
 
-        self.task = asyncio.create_task(self.run())
-
     async def handle_state_change(self, new_state):
         if new_state != self.current_state:
             self.current_state = new_state
-            self.load_video_for_state(new_state)
+            self.load_video_for_state(new_state.name)
 
     def load_video_for_state(self, state):
         filename = self.video_map.get(state, "idle.mp4")
@@ -72,40 +77,34 @@ class BotGUI:
         return frame
 
 
-    async def run(self):
-        loop = asyncio.get_running_loop()
-        while self.running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.running = False
-
-            try:
-                frame_data = await loop.run_in_executor(None, self._process_frame_job)
-                if frame_data is not None:
-                    surf = pygame.surfarray.make_surface(frame_data)
-                    self.screen.blit(surf, (0, 0))
-                else:
-                    self.screen.fill((0,0,0))
-            except Exception as e:
-                print(f"GUI Error: {e}")
-
-            pygame.display.flip()
+    async def render(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False
             
-            self.clock.tick(GC.FRAME_RATE)
-            await asyncio.sleep(0)
+        try:
+            frame_data = await self.loop.run_in_executor(None, self._process_frame_job)
+            if frame_data is not None:
+                surf = pygame.surfarray.make_surface(frame_data)
+                self.screen.blit(surf, (0, 0))
+            else:
+                self.screen.fill((0,0,0))
+        except Exception as e:
+            print(f"GUI Error: {e}")
 
-        if self.cap:
-            self.cap.release()
-        pygame.quit()
+        pygame.display.flip()
+        
+        return True
 
     
     def shutdown(self):
         if self.cap:
             self.cap.release()
         pygame.quit()
-        self.task.cancel()
+        self._cancel_task()
 
     def _cancel_task(self):
-        self.task.cancel()
+        pass
+ #      self.task.cancel()
         
         

@@ -1,9 +1,15 @@
+# client_edge/configs/config.py
+
 import pyaudio
+import os 
+
+from dotenv import load_dotenv
+load_dotenv()
 
 # Timer Configuration
 class TimerConfig:
     
-    TIMER_COUNTER = 60
+    TIMER_SECONDS = 60
 
 
 # Audio Configurations
@@ -18,14 +24,14 @@ class AudioConfig:
     WAKE_WORD_THRESHOLD = 0.6
     WAKE_COMMAND = 'alexa'
 
-    VAD_RMS_THRESHOLD = 500
+    VAD_RMS_THRESHOLD = int(os.getenv("VAD_THRESHOLD", 500))
     VAD_SILENCE_CHUNKS_REQUIRED = 12
 
 class SocketConfig:
 
     CHANNELS = 1
     RATE = 16000
-    SAMPLE_WIDTH = 2 
+    SAMPLE_WIDTH = 2  # Chnages with FORMAT
 
 class GUIConfig:
 
@@ -34,5 +40,5 @@ class GUIConfig:
     FRAME_RATE = 24
 
 class GeneralConfig:
-    VIDEO_ADDRESS = "assets/videos"
-    SERVER_WS_URL = "localhost:8000"
+    VIDEO_ADDRESS = os.path.join("assets", "videos") 
+    SERVER_WS_URL = os.getenv("SERVER_WS_URL", "ws://localhost:8000")

@@ -1,6 +1,7 @@
-# client_edge/event_bus.py
+# client_edge/managers/event_bus.py
 
 import asyncio
+import inspect
 from typing import Callable, Dict, List, Set, Any
 
 class EventBus:
@@ -32,6 +33,11 @@ class EventBus:
                     self.background_tasks.add(task)
                     task.add_done_callback(self.background_tasks.discard)
                 else:
-                    callback(data)
+                    sig = inspect.signature(callback)
+                    if len(sig.parameters) == 0:
+                        callback() 
+                    else:
+                        callback(data)
+                        
             except Exception as e:
                 print(f"[BUS ERROR]: {e}")

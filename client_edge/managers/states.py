@@ -1,4 +1,4 @@
-# client_edge/states.py
+# client_edge/managers/states.py
 
 from enum import Enum
 
