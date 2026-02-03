@@ -1,6 +1,6 @@
 import asyncio
-from config import TimerConfig
-from states import BotState
+from client_edge.configs.config import TimerConfig
+from client_edge.managers.states import BotState
 
 class IdleTimer:
     def __init__(self, bus):

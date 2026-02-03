@@ -3,8 +3,8 @@ import pygame
 import cv2
 import numpy as np
 import os
-from client_edge.event_bus import EventBus
-from config import GUIConfig as GC
+from client_edge.managers.event_bus import EventBus
+from client_edge.configs.config import GUIConfig as GC
 
 class BotGUI:
     def __init__(self, bus: EventBus, video_folder="assets/videos"):

@@ -4,9 +4,9 @@ import pyaudio
 import numpy as np
 import asyncio
 from openwakeword.model import Model
-from event_bus import EventBus
-from states import BotState
-from config import AudioConfig as AC
+from client_edge.managers.event_bus import EventBus
+from client_edge.managers.states import BotState
+from client_edge.configs.config import AudioConfig as AC
 
 
 class AudioService:

@@ -1,7 +1,7 @@
 # client_edge/manager.py
 
-from event_bus import EventBus
-from states import BotState
+from client_edge.managers.event_bus import EventBus
+from client_edge.managers.states import BotState
 
 class BotManager:
     def __init__(self, bus: EventBus):

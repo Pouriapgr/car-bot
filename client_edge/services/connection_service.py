@@ -2,8 +2,8 @@ import aiohttp
 import asyncio
 import json
 import struct
-from client_edge.event_bus import EventBus
-from config import SocketConfig as SC
+from client_edge.managers.event_bus import EventBus
+from client_edge.configs.config import SocketConfig as SC
 
 class DataConnector:
     def __init__(self, bus: EventBus, server_ws_url: str):
