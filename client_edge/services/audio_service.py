@@ -3,11 +3,13 @@
 import pyaudio
 import numpy as np
 import asyncio
+import logging
 from openwakeword.model import Model
 from client_edge.managers.event_bus import EventBus
 from client_edge.managers.states import BotState
 from client_edge.configs.config import AudioConfig as AC
 
+logger = logging.getLogger(__name__)
 
 class BotAudio:
     def __init__(self, bus: EventBus):
@@ -21,14 +23,17 @@ class BotAudio:
         self.vad_silence_counter = 0
         self.vad_has_spoken = False    
 
-        self.p = pyaudio.PyAudio()
-        ### todo: make sure about the mic IN_CHUNK. might need to use buffer extention
-        self.input_stream = self.p.open(format=AC.FORMAT, channels=AC.CHANNELS, rate=AC.IN_RATE, input=True, frames_per_buffer=AC.IN_CHUNK)
-        self.output_stream = self.p.open(format=AC.FORMAT, channels=AC.CHANNELS, rate=AC.OUT_RATE, output=True)
-        self.is_running = True    
+        try:
+            self.p = pyaudio.PyAudio()
+            ### todo: make sure about the mic IN_CHUNK. might need to use buffer extention
+            self.input_stream = self.p.open(format=AC.FORMAT, channels=AC.CHANNELS, rate=AC.IN_RATE, input=True, frames_per_buffer=AC.IN_CHUNK)
+            self.output_stream = self.p.open(format=AC.FORMAT, channels=AC.CHANNELS, rate=AC.OUT_RATE, output=True)
+            self.is_running = True    
 
-        self.oww_model = Model(wakeword_models=[AC.WAKE_COMMAND])
-        
+            self.oww_model = Model(wakeword_models=[AC.WAKE_COMMAND])
+        except Exception as e:
+            logger.error(f"Error initiating audio service: {e}", exc_info=True)
+   
     def run_task(self):
         self.task = asyncio.create_task(self.audio_loop())
 
@@ -40,7 +45,7 @@ class BotAudio:
             try:
                 data = await asyncio.to_thread(self.input_stream.read, AC.IN_CHUNK, exception_on_overflow=False)
             except Exception as e:
-                print(f"AUDIO READ ERROR: {e}")
+                logger.error(f"AUDIO READ ERROR: {e}")
                 await asyncio.sleep(0.1)
                 continue
 
