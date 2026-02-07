@@ -11,8 +11,7 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 
-llm = None
-stt = None
+llm, sst = None, None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -21,9 +20,8 @@ async def lifespan(app: FastAPI):
     global llm, stt
     llm = ReasoningModel()
     logger.info(msg="LLM initiated correctly.")
-
     stt = Speech2Text('cuda', 'float16')
-    logger.info(msg="STT initiated correctly.")
+    logger.info(msg="STT model initiated correctly.")
     
     yield 
 
