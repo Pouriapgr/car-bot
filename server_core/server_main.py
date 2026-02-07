@@ -2,7 +2,7 @@ import base64
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from logging_config import setup_logging
+from server_core.configs.logging_config import setup_logging
 from server_core.services.speech2text import Speech2Text
 from server_core.services.reasoning import ReasoningModel
 from server_core.services import text2speech
