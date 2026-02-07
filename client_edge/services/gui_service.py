@@ -5,8 +5,11 @@ import pygame
 import cv2
 import numpy as np
 import os
+import logging
 from client_edge.managers.event_bus import EventBus
 from client_edge.configs.config import GUIConfig as GC
+
+logger = logging.getLogger(__name__)
 
 class BotGUI:
     def __init__(self, bus: EventBus, video_folder="assets/videos"):
@@ -25,22 +28,23 @@ class BotGUI:
             "SPEAKING": "speaking.mp4",    # e.g., Moving mouth
             "ACTING": "acting.mp4"
         }
-        
-        pygame.init()
-        self.display_size = (GC.DISPLAY_WIDTH, GC.DISPLAY_HEIGHT)
-        self.screen = pygame.display.set_mode(self.display_size)
-        pygame.display.set_caption("Robot Face")
-        pygame.mouse.set_visible(False)
-        self.clock = pygame.time.Clock()
+        # Subscribe to events
+        self.bus.subscribe("STATE_CHANGED", self.handle_state_change)
+
+        try:
+            pygame.init()
+            self.display_size = (GC.DISPLAY_WIDTH, GC.DISPLAY_HEIGHT)
+            self.screen = pygame.display.set_mode(self.display_size)
+            pygame.display.set_caption("Robot Face")
+            pygame.mouse.set_visible(False)
+            self.clock = pygame.time.Clock()
+        except Exception as e:
+            logger.error(f"Critical Error in gui initialize: {e}", exc_info=True)
 
         self.current_state = "BOOT"
         self.cap = None 
         self.current_video_file = None
         self.loop = asyncio.get_running_loop()
-        
-        # Subscribe to events
-        self.bus.subscribe("STATE_CHANGED", self.handle_state_change)
-        
         self.load_video_for_state("BOOT")
 
     async def handle_state_change(self, new_state):
@@ -53,13 +57,14 @@ class BotGUI:
         filepath = os.path.join(self.video_folder, filename)
         
         if not os.path.exists(filepath):
-            print(f"Video file not found: {filepath}")
+            logger.error(f"Video file not found: {filepath}")
             return
 
         if self.cap:
             self.cap.release()
         self.cap = cv2.VideoCapture(filepath)
         self.current_video_file = filename
+        logger.error(f"Video file found: {filepath}")
 
     def _process_frame_job(self):
         if not self.cap or not self.cap.isOpened():
@@ -90,7 +95,7 @@ class BotGUI:
             else:
                 self.screen.fill((0,0,0))
         except Exception as e:
-            print(f"GUI Error: {e}")
+            logger.error(f"Critical Error in gui rendering: {e}", exc_info=True)
 
         pygame.display.flip()
         
