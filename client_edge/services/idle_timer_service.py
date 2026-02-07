@@ -1,8 +1,11 @@
 # client_edge/services/idle_timer_service.py
 
+import logging
 import asyncio
-from client_edge.configs.config import TimerConfig
+from client_edge.configs.config import TimerConfig as TC
 from client_edge.managers.states import BotState
+
+logger = logging.getLogger(__name__)
 
 class IdleTimer:
     def __init__(self, bus):
@@ -19,10 +22,12 @@ class IdleTimer:
 
     async def countdown(self):
         try:
-            await asyncio.sleep(TimerConfig.TIMER_SECONDS) 
+            logger.info(f"Idle timer started for {TC.TIMER_SECONDS} seconds.")
+            await asyncio.sleep(TC.TIMER_SECONDS) 
             await self.bus.publish("IDLE_TIMEOUT")
+            logger.info(f"Idle Timeout initiated.")
         except asyncio.CancelledError:
-            print("TIMER: Reset")
+            logger.info(f"Idle timer reset.")
 
     def shutdown(self):
         self._cancel_task()
