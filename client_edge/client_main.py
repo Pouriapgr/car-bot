@@ -1,5 +1,6 @@
 # client_edge/main.py
 
+import logging
 import asyncio
 from client_edge.managers.event_bus import EventBus
 from client_edge.managers.manager import BotManager
@@ -8,11 +9,15 @@ from client_edge.services.audio_service import BotAudio
 from client_edge.services.connection_service import DataConnector
 from client_edge.services.idle_timer_service import IdleTimer
 from client_edge.configs.config import GeneralConfig as GC
+from client_edge.configs.logging_config import setup_logging
 
+setup_logging()
+logger = logging.getLogger(__name__)
 
 async def main():
    
     event_bus = EventBus()
+    logger.info("Event Bus initiated")
     system_manager = BotManager(event_bus)
     gui_service = BotGUI(event_bus, GC.VIDEO_ADDRESS)
     audio_service = BotAudio(event_bus)

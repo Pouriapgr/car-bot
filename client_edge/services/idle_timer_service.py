@@ -12,8 +12,7 @@ class IdleTimer:
         self.bus.subscribe("STATE_CHANGED", self.on_state_change)
 
     async def on_state_change(self, state):
-        if self.task:
-            self.task.cancel()
+        self._cancel_task()
 
         if state == BotState.IDLE:
             self.task = asyncio.create_task(self.countdown())
