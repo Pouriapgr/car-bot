@@ -1,7 +1,9 @@
 import asyncio
 import subprocess
+import logging
 from server_core.configs.config import ModelsConfig as MC
 
+logger = logging.getLogger(__name__)
 
 async def text_to_speech(text: str) -> bytes:
     return await asyncio.to_thread(_run_piper_cli, text)
@@ -14,7 +16,6 @@ def _run_piper_cli(text):
             "--model", MC.MODEL_PATH,
             "--output_file", "output.wav"
         ]
-        
         process = subprocess.Popen(
             cmd, 
             stdin=subprocess.PIPE, 
@@ -26,6 +27,7 @@ def _run_piper_cli(text):
         with open("output.wav", "rb") as f:
             data = f.read()
         return data
+    
     except Exception as e:
-        print(f"Piper Error: {e}")
+        logger.error(f"CRITICAL TTS PROCESS ERROR: {e}", exc_info=True)
         return b""
