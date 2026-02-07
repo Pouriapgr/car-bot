@@ -1,13 +1,16 @@
 import asyncio
+import logging
 from llama_cpp import Llama
 from server_core.configs.config import ModelsConfig as MC
+
+logger = logging.getLogger(__name__)
 
 class ReasoningModel:
     def __init__(self):
         try:
             self.llm = Llama(model_path=MC.REASONING_MODEL_PATH, n_ctx=MC.REASONING_MODEL_CTX, n_gpu_layers=-1, verbose=False) 
         except Exception as e:
-            print(f"CRITICAL LLM ERROR: {e}")
+            logger.error(f"CRITICAL LLM ERROR: {e}", exc_info=True)
             self.llm = None
 
         self.SYSTEM_PROMPT = """
@@ -22,8 +25,11 @@ class ReasoningModel:
         return await asyncio.to_thread(self._generate, user_text)
 
     def _generate(self, user_text):
-        prompt = f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{self.SYSTEM_PROMPT}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{self.user_text}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"
-
+        prompt = (
+            f"<|im_start|>system\n{self.SYSTEM_PROMPT}<|im_end|>\n"
+            f"<|im_start|>user\n{user_text}<|im_end|>\n"
+            f"<|im_start|>assistant\n"
+        )
         output = self.llm(
             prompt, 
             max_tokens=MC.REASONING_MODEL_MAX_TOKENS, 
@@ -32,6 +38,4 @@ class ReasoningModel:
         )
         
         response_text = output['choices'][0]['text'].strip()
-        print(f"Bot thought: {response_text}")
-
         return {"text": response_text, "should_listen_again": "?" in response_text or "؟" in response_text}
