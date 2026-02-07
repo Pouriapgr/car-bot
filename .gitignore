@@ -1,0 +1,53 @@
+# --- Bytecode ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Logs ---
+*.log
+logs/
+log/
+*.log.*
+
+# --- Virtual Environments ---
+venv/
+env/
+.env/
+.venv/
+
+# --- Environment Variables ---
+.env
+.env.local
+.env.*
+
+# --- Distribution / Builds ---
+build/
+dist/
+develop-eggs/
+eggs/
+lib/
+lib64/
+*.egg-info/
+*.egg
+
+# --- Unit Tests & Coverage ---
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# --- IDE / Editor Settings ---
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# --- OS Generated Files ---
+.DS_Store
+Thumbs.db
+
+
+# --- Models ---
+*.onnx
+*.onnx.json
+*.gguf
