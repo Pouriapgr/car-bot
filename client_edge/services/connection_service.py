@@ -4,8 +4,11 @@ import aiohttp
 import asyncio
 import json
 import struct
+import logging
 from client_edge.managers.event_bus import EventBus
 from client_edge.configs.config import SocketConfig as SC
+
+logger = logging.getLogger(__name__)
 
 class DataConnector:
     def __init__(self, bus: EventBus, server_ws_url: str):
@@ -34,15 +37,18 @@ class DataConnector:
 
                         async for msg in ws:
                             if msg.type == aiohttp.WSMsgType.TEXT:
+                                logger.info("Message recieved over web-socket.")
                                 await self.handle_server_message(msg.data)
                             elif msg.type == aiohttp.WSMsgType.ERROR:
+                                logger.info("Error recieved over web-socket." + msg)
                                 break
                         self.is_connected = False
                         await self.bus.publish("NETWORK_DISCONNECTED") # FUTURE Devlopment
+                        logger.info("Network Disconnected." + msg)
 
             except Exception as e:
                 self.is_connected = False
-                print(f"Connection Failed: {e}. Retrying in 3s...")
+                logger.error(f"Connection Failed: {e}. Retrying in 3s...")
                 await self.bus.publish("NETWORK_DISCONNECTED") # FUTURE Devlopment
                 await asyncio.sleep(3) # Wait before retry
 
@@ -52,21 +58,22 @@ class DataConnector:
             await self.bus.publish("SERVER_RESPONSE_RECEIVED", data)
             
         except json.JSONDecodeError:
-            print(f"Failed to decode server message: {message_str}")
+            logger.error(f"Failed to decode server message: {message_str}")
         except Exception as e:
-            print(f"Error handling server message: {e}")
+            logger.error(f"Error handling server message: {e}", exc_info=True)
 
 
     async def send_audio(self, raw_audio_bytes):
         if not self.is_connected or not self.ws:
             await self.bus.publish("SERVER_ERROR") # FUTURE Devlopment
+            logger.info(f"Audio transmition to server error")
             return
         
         wav_data = self._add_wav_header(raw_audio_bytes)
         try:
             await self.ws.send_bytes(wav_data)
         except Exception as e:
-            print(f"Failed to send audio: {e}")
+            logger.error(f"Failed to send audio to server: {e}", exc_info=True)
             await self.bus.publish("SERVER_ERROR") # FUTURE Devlopment
 
     def _add_wav_header(self, pcm_data: bytes) -> bytes:
