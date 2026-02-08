@@ -1,7 +1,10 @@
 # client_edge/managers/manager.py
 
+import logging
 from client_edge.managers.event_bus import EventBus
 from client_edge.managers.states import BotState
+
+logger = logging.getLogger(__name__)
 
 class BotManager:
     def __init__(self, bus: EventBus):
@@ -24,10 +27,10 @@ class BotManager:
     # --- THE CENTRAL TRANSITION FUNCTION ---
     async def set_state(self, new_state):
         if self.state == new_state: return
+        logger.info(f"Manager State changed from {self.state} to: {new_state}")
         self.state = new_state
         await self.bus.publish("STATE_CHANGED", self.state)
-
-
+        
     # --- EVENT HANDLERS ---
     
     async def on_wake_word_received(self, _):
