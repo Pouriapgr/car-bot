@@ -3,8 +3,8 @@
 import io
 import asyncio
 import logging
-from faster_whisper import WhisperModel
 from server_core.configs.config import ModelsConfig as MC
+from faster_whisper import WhisperModel
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,16 @@ class Speech2Text:
     def _process_transcription(self, audio_bytes):
         try:
             audio_file = io.BytesIO(audio_bytes)
-            segments, info = self.model.transcribe(audio_file, MC.SST_BEAM_SIZE, language=MC.STT_LANGUAGE)
+            farsi_prompt = "سلام چطوری؟ خوبی؟ دمت گرم. آره بابا حله. خیلی مخلصیم. الان کجایی؟ باشه."
+            segments, info = self.model.transcribe(audio_file, 
+                                                   beam_size=MC.SST_BEAM_SIZE, 
+                                                   language=MC.STT_LANGUAGE, 
+                                                   initial_prompt=farsi_prompt, 
+                                                   condition_on_previous_text=False,
+                                                   patience=1.0,
+                                                   temperature=[0.0, 0.2],
+                                                   )
+            
             text = " ".join([segment.text for segment in segments])
             return text.strip()
         
