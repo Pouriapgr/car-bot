@@ -3,10 +3,11 @@
 import asyncio
 import pyaudio
 import numpy as np
-import logging
 import wave
 import io
+from ctypes import *
 from server_core.services.speech2text import Speech2Text
+from server_core.services.reasoning import ReasoningModel
 from server_core.configs.config import AudioConfig as AC
 
 def create_wav_bytes(pcm_data: bytes) -> bytes:
@@ -21,7 +22,7 @@ def create_wav_bytes(pcm_data: bytes) -> bytes:
     return wav_io.read()
 
 async def run_tester():
-    
+    llm = ReasoningModel()
     stt = Speech2Text(device='cuda', compute_type='float16')
     p = pyaudio.PyAudio()
     
@@ -31,7 +32,7 @@ async def run_tester():
             channels=AC.CHANNELS,
             rate=AC.IN_RATE,
             input=True,
-            frames_per_buffer=AC.CHUNK
+            frames_per_buffer=AC.IN_CHUNK
         )
     except Exception as e:
         print(f"Failed to open microphone: {e}")
@@ -69,18 +70,21 @@ async def run_tester():
                 vad_silence_counter += 1
                 audio_buffer.append(data)
 
-                if vad_silence_counter >= AC.VAD_SILENCE_CHUNKS:
+                if vad_silence_counter >= AC.VAD_SILENCE_CHUNKS_REQUIRED:
                     print("<< End of sentence detected. Processing...")
                     
                     raw_audio = b''.join(audio_buffer)
                     wav_audio = create_wav_bytes(raw_audio)
 
-                    print.info("Transcribing...")
+                    print("Transcribing...")
                     text = await stt.transcribe_audio(wav_audio)
                     
                     print("\n" + "="*40)
                     print(f"TRANSCRIPTION: {text}")
                     print("="*40 + "\n")
+
+                    ans = await llm.get_response(text)
+                    print(ans)
 
                     audio_buffer = []
                     vad_silence_counter = 0

@@ -3,8 +3,8 @@
 import io
 import asyncio
 import logging
-from server_core.configs.config import ModelsConfig as MC
 from faster_whisper import WhisperModel
+from server_core.configs.config import ModelsConfig as MC
 
 logger = logging.getLogger(__name__)
 
