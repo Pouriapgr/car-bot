@@ -5,7 +5,7 @@ import os
 
 class ModelsConfig:
    
-    REASONING_MODEL_PATH = os.path.join("server_core/models", "qwen2.5-7b-instruct-q6_k-00001-of-00002.gguf")
+    REASONING_MODEL_PATH = os.path.join("server_core/models", "dorna-llama3-8b-instruct.Q5_K_M.gguf")
     REASONING_MODEL_CTX = 4096
     REASONING_MODEL_MAX_TOKENS = 128
 
