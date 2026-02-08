@@ -52,3 +52,4 @@ Thumbs.db
 *.onnx.json
 *.gguf
 piper/
+faster-whisper-large-v3/
