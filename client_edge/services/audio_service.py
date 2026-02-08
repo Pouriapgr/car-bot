@@ -107,7 +107,7 @@ class BotAudio:
             pass
 
     async def _play_system_sound(self, sound_type):
-        print(f"AUDIO: >> Playing sound: {sound_type} <<")
+        logger.info(f"AUDIO: >> Playing sound: {sound_type} <<")
 
     async def play_audio(self, audio_data: bytes):
         if not audio_data:
@@ -119,7 +119,7 @@ class BotAudio:
             await asyncio.to_thread(self.output_stream.write, silence)
 
         except Exception as e:
-            print(f"AUDIO ERROR (Playback): {e}")
+            logger.error(f"AUDIO ERROR (Playback): {e}")
 
         finally:
             await self.bus.publish("PLAYBACK_COMPLETE")
