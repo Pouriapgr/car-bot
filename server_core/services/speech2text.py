@@ -23,7 +23,7 @@ class Speech2Text:
     def _process_transcription(self, audio_bytes):
         try:
             audio_file = io.BytesIO(audio_bytes)
-            farsi_prompt = "سلام چطوری؟ خوبی؟ دمت گرم. آره بابا حله. خیلی مخلصیم. الان کجایی؟ باشه."
+            farsi_prompt = ""
             segments, info = self.model.transcribe(audio_file, 
                                                    beam_size=MC.SST_BEAM_SIZE, 
                                                    language=MC.STT_LANGUAGE, 

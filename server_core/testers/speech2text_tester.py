@@ -84,8 +84,8 @@ async def run_tester():
                     print("="*40 + "\n")
 
                     ans = await llm.get_response(text)
-                    print(ans)
-
+                    print(f"ANSWER: {ans['text']}")
+                    print("="*40 + "\n")
                     audio_buffer = []
                     vad_silence_counter = 0
                     vad_has_spoken = False
